@@ -92,7 +92,7 @@ export const AuthService = {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // OTP 6 chữ số
         const expiresAt = Date.now() + 5 * 60 * 1000; // Hết hạn sau 5 phút
         otpStore.set(emailTo, { otp: otpCode, expiresAt });
-        await AuthService.sendOTPMail({ emailTo, otpCode });
+        await AuthService.sendOTPMail({ subject: "Xác thực OTP", emailTo, otpCode });
     },
 
     // 📌 Xác thực OTP
@@ -200,8 +200,8 @@ export const AuthService = {
                             <p>Mã OTP này sẽ hết hạn sau 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai để bảo mật tài khoản của bạn.</p>
                         </div>
                         <div class="footer">
-                            <p>Email hỗ trợ: 20210864@eaut.edu.vn</p>
-                            <p>Điện thoại: 0342404775</p>
+                            <p>Email hỗ trợ: nqb3010@gmail.com</p>
+                            <p>Điện thoại: 0346508570</p>
                         </div>
                     </div>
                 </body>
