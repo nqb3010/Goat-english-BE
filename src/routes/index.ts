@@ -11,6 +11,10 @@ import exerciseRouter from './exercise.route.js';
 import vocabularyRouter from './vocabulary.route.js';
 import adminRouter from './admin.route.js';
 
+let chatStore = new Map<
+  string,
+  { content: string; timestamp: number }[]
+>();
 const app = new Hono();
 
 // auth
@@ -92,26 +96,51 @@ let OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_API_MODEL = process.env.OPENROUTER_API_MODEL || 'google/gemma-3n-e4b-it:free';
 // chatbot
 app.get("/chatbot", async (c: Context) => {
-    const { message } = c.req.query();
+    const { message,user_id } = c.req.query();
     if (!message || typeof message !== 'string') {
         return new Response("Missing or invalid `message` query parameter", { status: 400 });
     }
+    if (!user_id || typeof user_id !== 'string') {
+        return new Response("Missing or invalid `user_id` query parameter", { status: 400 });
+    }
+    if (!chatStore.has(user_id)) {
+        chatStore.set(user_id, []);
+    }
+    let history = chatStore.get(user_id)!;
+    // Giữ lại tối đa 10 tin nhắn gần nhất
+    if (history.length > 10) {
+        history.shift();
+    }
+    // Xoá các tin nhắn cũ hơn 30 phút
+    const THIRTY_MINUTES = 30 * 60 * 1000;
+    const now = Date.now();
+    history = history.filter((msg) => now - msg.timestamp < THIRTY_MINUTES);
+    chatStore.set(user_id, history);
+    // Kết hợp lịch sử thành một chuỗi
+    const historyText = history.map((msg) => msg.content).join("\n");
+    const fullMessage = `Dưới đây là lịch sử trò chuyện của người dùng:\n${historyText}\n\nCâu hỏi mới: ${message}\nTrả lời ngắn gọn, dễ hiểu.`;
+    let aiResponse = "";
     const stream = new ReadableStream({
     async start(controller) {
         try {
             await fetchOpenRouterStream(
-                message,
-                (chunk) => controller.enqueue(`data: ${chunk}\n\n`),
+                fullMessage,
+                (chunk) => {
+                    aiResponse += chunk;
+                    controller.enqueue(`data: ${chunk}\n\n`);
+                },
                 () => {
                     controller.enqueue(`data: [DONE]\n\n`);
                     controller.close();
                 }
             );
-            } catch (err) {
-                controller.enqueue(`data: [ERROR] ${err || "Unknown error"}\n\n`);
-                controller.close();
-            }
-        },
+            // Lưu tin nhắn mới vào lịch sử
+            history.push({ content: `User: ${message}\nBạn đã trả lời: ${aiResponse}`, timestamp: Date.now() });
+        } catch (err) {
+            controller.enqueue(`data: [ERROR] ${err || "Unknown error"}\n\n`);
+            controller.close();
+        }
+    },
     });
     return new Response(stream, {
         headers: {
@@ -139,8 +168,7 @@ export async function fetchOpenRouterStream(
 - Chỉ trả lời các câu hỏi liên quan đến học tiếng Anh cơ bản, giải thích ngắn gọn, dễ hiểu. 
 - Nếu người dùng hỏi về nguồn gốc, ai tạo ra bạn, hay web này của ai thì trả lời ngắn gọn: "Tôi được phát triển bởi Bảo và đang được tích hợp vào website này để hỗ trợ học tiếng Anh."
 Nếu người dùng chửi bậy, nói tục hoặc khiêu khích, bạn sẽ trả lời ngắn gọn là : "Thằng khốn, hỏi linh tinh tao band".
-- Các câu hỏi ngoài phạm vi trên thì từ chối khéo: "Mình chỉ hỗ trợ học tiếng Anh cơ bản, bạn muốn hỏi gì về tiếng Anh không?"
-Câu hỏi:` + prompt;
+- Các câu hỏi ngoài phạm vi trên thì từ chối khéo: "Mình chỉ hỗ trợ học tiếng Anh cơ bản, bạn muốn hỏi gì về tiếng Anh không?"` + prompt;
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
