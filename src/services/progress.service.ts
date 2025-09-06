@@ -9,7 +9,7 @@ export const ProgressService = {
     createOrUpdate: async (_id: string | null, name: string, description: string, topic_id: string, icon?: string, order?: number) => {
         // check exist
         if (!_id) {
-            const checkProgress = await ProgressModel.findOne({ is_delete: false, topic_id, name: { $regex: name, $options: 'i' }});
+            const checkProgress = await ProgressModel.findOne({ is_delete: false, topic_id, name: { $regex: `^${name}$`, $options: 'i' }});
             if (checkProgress) throw new HTTPException(404, { message: "Lộ trình đã tồn tại" });
         }
         // Cập nhật hoặc tạo mới nếu `_id` không tồn tại
