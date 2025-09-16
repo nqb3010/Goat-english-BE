@@ -10,6 +10,7 @@ import exerciseTypeRouter from './exercise_type.route.js';
 import exerciseRouter from './exercise.route.js';
 import vocabularyRouter from './vocabulary.route.js';
 import adminRouter from './admin.route.js';
+import examRouter from './exam.route.js';
 
 let chatStore = new Map<
   string,
@@ -35,6 +36,8 @@ app.route('/exercise-level', exerciseLevelRouter);
 app.route('/exercise-type', exerciseTypeRouter);
 // vocabulary
 app.route('/vocabulary', vocabularyRouter);
+// Exam
+app.route('/exam', examRouter);
 // admin
 app.route('/admin', adminRouter);
 // text to speech
