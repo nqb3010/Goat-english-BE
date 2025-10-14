@@ -4,8 +4,8 @@ import { ExamService } from "../services/exam.service.js";
 export const ExamController = {
     // 📌 Tạo hoặc cập nhật đề thi
     createOrUpdate: async (c: Context, next: Next) => {
-        const { _id, name, description, image, exercises, total_questions, duration, status } = await c.req.json();
-        const result = await ExamService.createOrUpdate(_id, name, description, image, exercises, total_questions, duration, status);
+        const { _id, name, description, image, topic_id, exercises, total_questions, duration, status } = await c.req.json();
+        const result = await ExamService.createOrUpdate(_id, name, description, image, topic_id, exercises, total_questions, duration, status);
         return c.json({ message: "Thực hiện thành công", data: result }, 200);
     },
     // 📌 Lấy chi tiết đề thi
@@ -23,6 +23,12 @@ export const ExamController = {
         // Gọi service để lấy dữ liệu
         const exams = await ExamService.getAll(page, limit, search);
         return c.json({ message: "Lấy danh sách đề thi thành công", data: exams }, 200);
+    },
+    // 📌 Lấy đề thi theo topic_id
+    getByTopicId: async (c: Context, next: Next) => {
+        const { topic_id } = c.req.param();
+        const result = await ExamService.getByTopicId(topic_id);
+        return c.json({ message: "Lấy đề thi theo topic_id thành công", data: result }, 200);
     },
     // // 📌 Xóa đề thi
     // deleteExam: async (c: Context, next: Next) => {

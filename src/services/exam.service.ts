@@ -12,7 +12,7 @@ import isBase64 from "is-base64";
 
 export const ExamService = {
     createOrUpdate : async (
-        _id: string | null, name: string, description: string | undefined, image: string | undefined, 
+        _id: string | null, name: string, description: string | undefined, image: string | undefined, topic_id: string | undefined,
         exercises: { 
             _id: string, type: string, level: string, question: string, options: string[], 
             multiple_correct: boolean, correct_answer: string, audio: string, explain_answer: string,
@@ -41,6 +41,7 @@ export const ExamService = {
             name,
             description,
             image: imageUrl,
+            topic_id: topic_id ? new Types.ObjectId(topic_id) : undefined,
             exercises: newExercises,
             total_questions,
             duration,
@@ -67,7 +68,7 @@ export const ExamService = {
                 fields: ["_id", "type", "level", "question", "options", "multiple_correct", "correct_answer", "audio", "explain_answer", "explain_answer_vn"]
             });
         }));
-        return { ...getInfoData({data: exam, fields: ["_id", "name", "description", "image", "total_questions", "duration", "status"]}), exercises };
+        return { ...getInfoData({data: exam, fields: ["_id", "name", "description", "topic_id", "image", "total_questions", "duration", "status"]}), exercises };
     },
     getAll: async (page = 1, limit = 10, search = '') => {
         const query: any = { is_delete: false };
@@ -96,5 +97,9 @@ export const ExamService = {
                 totalRecords,
             },
         };
+    },
+    getByTopicId: async (topic_id: string) => {
+        const exams = await ExamModel.find({ topic_id, is_delete: false }).populate("topic_id").sort({ order: 1 }).lean();
+        return exams.map(exam => getInfoData({ data: exam, fields: ["_id", "name", "description", "image", "total_questions", "duration", "status"] }));
     },
 }

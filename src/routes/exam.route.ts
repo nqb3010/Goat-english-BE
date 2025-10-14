@@ -10,6 +10,8 @@ app.post('/', authenticate, authorizeAdmin, asyncHandler(ExamController.createOr
 app.get('/:exam_id', asyncHandler(ExamController.getDetail));
 // Get all exams
 app.get('/', asyncHandler(ExamController.getAll));
+//get exam by topic_id
+app.get('/topic/:topic_id', asyncHandler(ExamController.getByTopicId));
 // // Delete exam
 // app.delete('/:exam_id', authenticate, authorizeAdmin, asyncHandler(ExamController.deleteExam));
 // // Import exam
