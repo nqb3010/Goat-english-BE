@@ -63,6 +63,15 @@ export const UserController = {
         });
         return c.json({ message: "Hoàn thành bài học thành công", data: result }, 200);
     },
+    submitExam: async (c: Context, next: Next) => {
+        const user = c.get("user");
+        const { data} = await c.req.json();
+        const result = await UserService.submitExam({
+            user_id: user.userId,
+            ...data
+        });
+        return c.json({ message: "Nộp bài thi thành công", data: result }, 200);
+    },
     deleteById: async (c: Context) => {
         const { user_id } = c.req.param();
         const result = await UserService.deleteById(user_id);
@@ -74,10 +83,10 @@ export const UserController = {
         return c.json({ message: "Lấy lỗi cũ thành công", data: result }, 200);
     },
     updateInfor: async (c: Context) => {
-        const { username, email, otpCode } = await c.req.json();
-        console.log("update infor", username, email, otpCode);
+        const { username, email, otpCode, fullname, age } = await c.req.json();
+        console.log("update infor", username, email, otpCode, fullname, age);
         const user = c.get("user");
-        const result = await UserService.updateInfor(user.userId, username, email, otpCode);
+        const result = await UserService.updateInfor(user.userId, username, email, otpCode, fullname, age);
         return c.json(result, 200);
     },
     // 📌 Change password
@@ -99,5 +108,11 @@ export const UserController = {
         const user = c.get("user");
         const result = await UserService.checkStreak(user.userId);
         return c.json({ ...result }, 200);
+    },
+    updatePopupInfor: async (c: Context) => {
+        const { fullname, age } = await c.req.json();
+        const user = c.get("user");
+        const result = await UserService.updatePopupInfor(user.userId, fullname, age);
+        return c.json({ message: "Cập nhật thông tin thành công", data: result }, 200);
     }
 };

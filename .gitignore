@@ -10,7 +10,7 @@
 
 # deps
 node_modules/
-
+api/
 # env
 .env
 .env.production

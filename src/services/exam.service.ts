@@ -9,6 +9,8 @@ import { info } from "console";
 import _ from "lodash";
 import { uploadFileImg } from "../utils/upload.ultil.js";
 import isBase64 from "is-base64";
+import UserExamModel from "../models/user_exam.model.js";
+import { UserExamService } from "./user_exam.service.js";
 
 export const ExamService = {
     createOrUpdate : async (
@@ -102,4 +104,17 @@ export const ExamService = {
         const exams = await ExamModel.find({ topic_id, is_delete: false }).populate("topic_id").sort({ order: 1 }).lean();
         return exams.map(exam => getInfoData({ data: exam, fields: ["_id", "name", "description", "image", "total_questions", "duration", "status"] }));
     },
+    deleteExam: async (exam_id: string) => {
+        const exam = await ExamModel.findById(exam_id);
+        if (!exam || exam.is_delete) {
+            throw new HTTPException(404, { message: "Đề thi không tồn tại" });
+        }
+        exam.is_delete = true;
+        await exam.save();
+        return getInfoData({ data: exam, fields: ["_id", "name", "description", "image", "total_questions", "duration", "status"] });
+    },
+    getHistoryByUser: async (user_id: string) => {
+        const histories = await UserExamService.getHistoryByUser(user_id);
+        return histories;
+    }
 }

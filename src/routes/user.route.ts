@@ -21,6 +21,8 @@ app.get('/get-topics-learned', authenticate, asyncHandler(UserController.getTopi
 app.get('/get-lesson-current/:topic_id', authenticate, asyncHandler(UserController.getLessonCurrent));
 // submit lesson
 app.post('/submit-lesson', authenticate, asyncHandler(UserController.submitLesson));
+// submit exam
+app.post('/submit-exam', authenticate, asyncHandler(UserController.submitExam));
 // Get by id
 app.get('/:user_id', authenticate, authorizeAdmin, asyncHandler(UserController.getById));
 // Delete
@@ -35,5 +37,8 @@ app.post('/change-password', authenticate, asyncHandler(UserController.changePas
 app.post('/delete-account', authenticate, asyncHandler(UserController.deleteAccount));
 // check streak
 app.post('/check-streak', authenticate, asyncHandler(UserController.checkStreak));
+
+// update popup infor
+app.put('/update-infor', authenticate, asyncHandler(UserController.updatePopupInfor));
 
 export default app;

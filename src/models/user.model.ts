@@ -7,6 +7,8 @@ const COLLECTION_NAME = "users";
 export interface IUser extends Document {
   username: string;
   email: string;
+  fullname?: string;
+  age?: number;
   password_hash: string;
   role: "user" | "admin";
   topic_id: Types.ObjectId | null;
@@ -19,6 +21,8 @@ export interface IUser extends Document {
 const userSchema = new Schema({
   username: { type: String, unique: true, required: true },
   email: { type: String, unique: true, required: true },
+  fullname: { type: String, required: false },
+  age: { type: Number, required: false },
   password_hash: { type: String, required: false },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   topic_id: { type: Schema.Types.ObjectId, ref: "topic", required: false },

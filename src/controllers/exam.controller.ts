@@ -30,12 +30,18 @@ export const ExamController = {
         const result = await ExamService.getByTopicId(topic_id);
         return c.json({ message: "Lấy đề thi theo topic_id thành công", data: result }, 200);
     },
-    // // 📌 Xóa đề thi
-    // deleteExam: async (c: Context, next: Next) => {
-    //     const { exam_id } = c.req.param();
-    //     const result = await ExamService.deleteExam(exam_id);
-    //     return c.json({ message: "Xóa đề thi thành công", data: result}, 200);
-    // },
+    // 📌 Xóa đề thi
+    deleteExam: async (c: Context, next: Next) => {
+        const { exam_id } = c.req.param();
+        const result = await ExamService.deleteExam(exam_id);
+        return c.json({ message: "Xóa đề thi thành công", data: result}, 200);
+    },
+    // 📌 Lấy lịch sử làm đề thi của use
+    getHistoryByUser: async (c: Context, next: Next) => {
+        const { user_id } = c.req.param();
+        const result = await ExamService.getHistoryByUser(user_id);
+        return c.json({ message: "Lấy lịch sử làm đề thi của user thành công", data: result}, 200);
+    }
     // // import exam
     // importExam: async (c: Context, next: Next) => {
     //     const body = await c.req.parseBody();

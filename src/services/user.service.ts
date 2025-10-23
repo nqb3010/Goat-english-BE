@@ -12,6 +12,8 @@ import UserProgressModel from "../models/user_progress.model.js";
 import { ExerciseService } from "./exercise.service.js";
 import { AuthService } from "./auth.service.js";
 import bcrypt from "bcryptjs";
+import UserExamModel from "../models/user_exam.model.js";
+import { ExamService } from "./exam.service.js";
 
 const otpStore = new Map<string, { otp: string, expiresAt: number }>(); // Lưu OTP tạm thời
 
@@ -76,7 +78,7 @@ export const UserService = {
             score = _.sumBy(userProgresses, "score");
         }
         return {
-            user: getInfoData({ fields: ["_id", "username", "email", "role", "topic_id", "streak", "streak_max", "streak_start"], data: user }),
+            user: getInfoData({ fields: ["_id", "username", "fullname", "age", "email", "role", "topic_id", "streak", "streak_max", "streak_start"], data: user }),
             topic, score
         };
     },
@@ -187,6 +189,18 @@ export const UserService = {
         }
         return null;
     },
+    submitExam: async ({ user_id, exam_id, topic_id, score, status, detail} : { user_id: string, exam_id: string, topic_id: string, score: number, status: string, detail: [] }) => {
+        // Lấy exam để kiểm tra
+        const exam = await ExamService.getDetail(exam_id);
+        if (!exam) throw new HTTPException(404, { message: "Đề thi không tồn tại" });
+        const today = new Date();
+        const userExam = await UserExamModel.findOne({ user_id, exam_id, topic_id }).lean();
+        if (userExam) throw new HTTPException(400, { message: "Bạn đã làm bài thi này" });
+        // Lưu vào user exam
+       const newExam = await UserExamModel.create({ user_id, exam_id, topic_id, score, status, detail});
+       console.log("new exam", newExam);
+        return newExam;
+    },
     deleteById: async (user_id: string) => {
         const user = await UserModel.findOne({ _id: user_id, is_delete: false });
         if (!user) throw new HTTPException(404, { message: "Người dùng không tồn tại" });
@@ -212,7 +226,7 @@ export const UserService = {
         return oldMistakes;
     },
     // 📌 update infor user
-    updateInfor: async (user_id: string, username: string, email: string, otpCode?: string) => {
+    updateInfor: async (user_id: string, username: string, email: string, otpCode?: string, fullname?: string, age?: number) => {
         // check email đã tồn tại chưa
         const userEmail: any = await UserModel.findOne({ email, is_delete: false });
         if (userEmail && userEmail?._id?.toString() !== user_id) {
@@ -232,11 +246,13 @@ export const UserService = {
             // update user
             userUpdate.username = username;
             userUpdate.email = email;
+            if (fullname) userUpdate.fullname = fullname;
+            if (age) userUpdate.age = age;
             await userUpdate.save();
             return {
                 status: 200,
                 message: "Cập nhật thông tin thành công",
-                data: getInfoData({ fields: ["_id", "username", "email"], data: userUpdate })
+                data: getInfoData({ fields: ["_id", "username", "email", "fullname", "age"], data: userUpdate })
             };
         }
         // send otp to email
@@ -249,6 +265,16 @@ export const UserService = {
             message: "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email để xác nhận thay đổi.",
             otpCode: true
         };
+    },
+    updatePopupInfor: async (user_id: string, fullname: string, age: number) => {
+        // check user tồn tại không
+        const userUpdate = await UserModel.findById(user_id);
+        if (!userUpdate) throw new HTTPException(404, { message: "Người dùng không tồn tại" });
+        // update user
+        userUpdate.fullname = fullname;
+        userUpdate.age = age;
+        await userUpdate.save();
+        return getInfoData({ fields: ["_id", "username", "email", "fullname", "age"], data: userUpdate });
     },
     // 📌 Change password
     changePassword: async (user_id: string, oldPassword: string, newPassword: string) => {
