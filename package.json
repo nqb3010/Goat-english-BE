@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "bun build src/server.ts --outdir=api --target=bun",
-    "start": "node dist/server.js",
+    "build": "bun build src/server.ts --outdir=dist --target=bun",
+    "start": "bun dist/server.js",
     "test": "jest"
   },
   "dependencies": {
